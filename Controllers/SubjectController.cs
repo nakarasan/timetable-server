@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Time_Table_Generator.Models;
 using Time_Table_Generator.Models.Request;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Time_Table_Generator.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class SubjectController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,7 +18,19 @@ namespace Time_Table_Generator.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var subjects = _context.Subjects.ToList();
+            var subjects = (from subject in _context.Subjects
+                            join hour in _context.SubjectHours
+                            on subject.Id equals hour.SubjectId
+                            orderby subject.Id descending
+                            select new
+                            {
+                                SubjectId = subject.Id,
+                                SubjectHourId = hour.Id,
+                                Name = subject.Name,
+                                HoursInWeek = hour.HoursInWeek,
+                                HoursInDay = hour.HoursInDay
+                            }).ToList();
+
             return Ok(new ResponseResult<object>(subjects));
         }
 
@@ -63,12 +73,29 @@ namespace Time_Table_Generator.Controllers
             return Ok(new ResponseResult<object>(subject));
         }
 
+        /*  [HttpDelete("{id}")]
+          public IActionResult Delete(int id)
+          {
+              var subject = _context.Subjects.Find(id);
+              if (subject == null)
+                  return NotFound(new ResponseResult<object>(new[] { "Subject not found." }));
+
+              _context.Subjects.Remove(subject);
+              _context.SaveChanges();
+
+              return Ok(new ResponseResult<object>("Subject deleted successfully."));
+          }*/
+
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var subject = _context.Subjects.Find(id);
             if (subject == null)
                 return NotFound(new ResponseResult<object>(new[] { "Subject not found." }));
+
+            // Delete related SubjectHours first
+            var subjectHours = _context.SubjectHours.Where(sh => sh.SubjectId == id).ToList();
+            _context.SubjectHours.RemoveRange(subjectHours);
 
             _context.Subjects.Remove(subject);
             _context.SaveChanges();

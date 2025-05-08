@@ -12,15 +12,14 @@ namespace Time_Table_Generator.Models
         public string LastName { get; set; } = string.Empty;
         
         // Displayname, Phone, Address, Email, and Password are required fields
-        public required string Displayname { get; set; } = string.Empty;
-        public required string Phone { get; set; } = string.Empty;
-        public required string Address { get; set; } = string.Empty;
+        public string Displayname { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         
         // Password field should be hashed before storage
         public string Password { get; set; } = string.Empty;
 
-        public UserRole Role { get; set; } = UserRole.User; // Default role is 'User'
         public required UserType UserType { get; set; } = UserType.Student; // Default type is 'Student'
         public UserStatus Status { get; set; } = UserStatus.Active; // Default status is 'Active'
 

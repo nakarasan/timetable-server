@@ -1,10 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Time_Table_Generator.Models;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Time_Table_Generator
 {
@@ -50,7 +46,7 @@ namespace Time_Table_Generator
             options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
                 new MySqlServerVersion(new Version(8, 0, 25))));
 
-            builder.Services.AddAuthentication(options =>
+           /* builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -67,7 +63,7 @@ namespace Time_Table_Generator
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new ArgumentNullException("JWT Key cannot be null")))
                 };
-            });
+            });*/
 
 
             // Add services

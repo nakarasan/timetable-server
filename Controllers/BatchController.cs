@@ -7,7 +7,6 @@ namespace Time_Table_Generator.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class BatchController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,7 +19,15 @@ namespace Time_Table_Generator.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var batches = _context.Batches.ToList();
+            var batches = _context.Batches
+                .Select(batch => new
+                {
+                    Id = batch.Id,
+                    BatchName = batch.Name,
+                    ClassName = batch.Class != null ? batch.Class.Name : string.Empty
+                })
+                .ToList();
+
             var response = new ResponseResult<object>(batches);
             return Ok(response);
         }
@@ -41,6 +48,9 @@ namespace Time_Table_Generator.Controllers
         {
             if (batch == null)
                 return BadRequest(new ResponseResult<object>(new[] { "Batch cannot be null." }));
+
+            if (batch.ClassId == 0)
+                return BadRequest(new ResponseResult<object>(new[] { "Valid ClassId is required." }));
 
             var newBatch = new Batch
             {

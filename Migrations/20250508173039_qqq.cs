@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Time_Table_Generator.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateMySQLCompatibility : Migration
+    public partial class qqq : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -135,9 +135,6 @@ namespace Time_Table_Generator.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Displayname = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Role = table.Column<int>(type: "int", nullable: false),
-                    UserType = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
                     Phone = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Address = table.Column<string>(type: "longtext", nullable: false)
@@ -146,6 +143,8 @@ namespace Time_Table_Generator.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Password = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserType = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Token = table.Column<string>(type: "longtext", nullable: true)
@@ -175,6 +174,31 @@ namespace Time_Table_Generator.Migrations
                         column: x => x.ClassId,
                         principalTable: "Classes",
                         principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ClassSubject",
+                columns: table => new
+                {
+                    ClassesId = table.Column<int>(type: "int", nullable: false),
+                    SubjectsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassSubject", x => new { x.ClassesId, x.SubjectsId });
+                    table.ForeignKey(
+                        name: "FK_ClassSubject_Classes_ClassesId",
+                        column: x => x.ClassesId,
+                        principalTable: "Classes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ClassSubject_Subjects_SubjectsId",
+                        column: x => x.SubjectsId,
+                        principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -258,11 +282,12 @@ namespace Time_Table_Generator.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    BatchId = table.Column<int>(type: "int", nullable: false),
-                    RollNumber = table.Column<string>(type: "longtext", nullable: false)
+                    BatchId = table.Column<int>(type: "int", nullable: true),
+                    RollNumber = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    RegistrationNumber = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    RegistrationNumber = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ClassId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -271,12 +296,41 @@ namespace Time_Table_Generator.Migrations
                         name: "FK_Students_Batches_BatchId",
                         column: x => x.BatchId,
                         principalTable: "Batches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Students_Classes_ClassId",
+                        column: x => x.ClassId,
+                        principalTable: "Classes",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Students_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ClassTeacher",
+                columns: table => new
+                {
+                    ClassesId = table.Column<int>(type: "int", nullable: false),
+                    TeachersId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassTeacher", x => new { x.ClassesId, x.TeachersId });
+                    table.ForeignKey(
+                        name: "FK_ClassTeacher_Classes_ClassesId",
+                        column: x => x.ClassesId,
+                        principalTable: "Classes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ClassTeacher_Teachers_TeachersId",
+                        column: x => x.TeachersId,
+                        principalTable: "Teachers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -309,6 +363,31 @@ namespace Time_Table_Generator.Migrations
                     table.ForeignKey(
                         name: "FK_ClassTeachers_Teachers_TeacherId",
                         column: x => x.TeacherId,
+                        principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SubjectTeacher",
+                columns: table => new
+                {
+                    SubjectsId = table.Column<int>(type: "int", nullable: false),
+                    TeachersId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubjectTeacher", x => new { x.SubjectsId, x.TeachersId });
+                    table.ForeignKey(
+                        name: "FK_SubjectTeacher_Subjects_SubjectsId",
+                        column: x => x.SubjectsId,
+                        principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SubjectTeacher_Teachers_TeachersId",
+                        column: x => x.TeachersId,
                         principalTable: "Teachers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -398,6 +477,16 @@ namespace Time_Table_Generator.Migrations
                 column: "ClassId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ClassSubject_SubjectsId",
+                table: "ClassSubject",
+                column: "SubjectsId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClassTeacher_TeachersId",
+                table: "ClassTeacher",
+                column: "TeachersId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ClassTeachers_BatchId",
                 table: "ClassTeachers",
                 column: "BatchId");
@@ -433,6 +522,11 @@ namespace Time_Table_Generator.Migrations
                 column: "BatchId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Students_ClassId",
+                table: "Students",
+                column: "ClassId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Students_UserId",
                 table: "Students",
                 column: "UserId");
@@ -441,6 +535,11 @@ namespace Time_Table_Generator.Migrations
                 name: "IX_SubjectHours_SubjectId",
                 table: "SubjectHours",
                 column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubjectTeacher_TeachersId",
+                table: "SubjectTeacher",
+                column: "TeachersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Teachers_UserId",
@@ -490,6 +589,12 @@ namespace Time_Table_Generator.Migrations
                 name: "Availabilities");
 
             migrationBuilder.DropTable(
+                name: "ClassSubject");
+
+            migrationBuilder.DropTable(
+                name: "ClassTeacher");
+
+            migrationBuilder.DropTable(
                 name: "ClassTeachers");
 
             migrationBuilder.DropTable(
@@ -506,6 +611,9 @@ namespace Time_Table_Generator.Migrations
 
             migrationBuilder.DropTable(
                 name: "SubjectHours");
+
+            migrationBuilder.DropTable(
+                name: "SubjectTeacher");
 
             migrationBuilder.DropTable(
                 name: "TeacherSubjects");

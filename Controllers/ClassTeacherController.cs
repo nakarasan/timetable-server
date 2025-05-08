@@ -7,7 +7,6 @@ namespace Time_Table_Generator.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class ClassTeacherController : ControllerBase
     {
         private readonly AppDbContext _context;

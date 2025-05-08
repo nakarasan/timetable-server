@@ -9,7 +9,6 @@ using System.Collections.Generic;
 namespace Time_Table_Generator.Controllers
 {
     [ApiController]
-    [AllowAnonymous]  // Allow anonymous access for login and register endpoints
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
@@ -41,7 +40,6 @@ namespace Time_Table_Generator.Controllers
                 Address = request.Address,
                 Email = request.Email,
                 Password = Helpers.PasswordHelper.HashPassword(request.Password),
-                Role = request.Role ?? UserRole.User,
                 UserType = request.UserType ?? UserType.Student,
                 Status = UserStatus.Active,
                 CreatedAt = DateTime.Now,
@@ -71,8 +69,9 @@ namespace Time_Table_Generator.Controllers
                     RollNumber = request.RollNumber ?? string.Empty,
                     RegistrationNumber = request.RegistrationNumber ?? string.Empty,
                     // BatchId will need to be provided or set to a default value if required
-                    BatchId = request.BatchId ?? 0 // Assuming 0 is an acceptable default
+                    BatchId = request.BatchId ?? null // Assuming 0 is an acceptable default
                 };
+
                 _context.Students.Add(student);
                 _context.SaveChanges();
             }
@@ -114,7 +113,6 @@ namespace Time_Table_Generator.Controllers
                 Token = token,
                 Displayname = user.Displayname,
                 Email = user.Email,
-                Role = user.Role.ToString(),
                 UserType = user.UserType.ToString()
             };
 

@@ -6,7 +6,6 @@ namespace Time_Table_Generator.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class EventController : ControllerBase
     {
         private readonly AppDbContext _context;

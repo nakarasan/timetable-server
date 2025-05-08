@@ -284,18 +284,16 @@ namespace Time_Table_Generator.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BatchId")
+                    b.Property<int?>("BatchId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ClassId")
+                    b.Property<int?>("ClassId")
                         .HasColumnType("int");
 
                     b.Property<string>("RegistrationNumber")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("RollNumber")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("UserId")
@@ -480,9 +478,6 @@ namespace Time_Table_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -615,14 +610,12 @@ namespace Time_Table_Generator.Migrations
                     b.HasOne("Time_Table_Generator.Models.Batch", "Batch")
                         .WithMany("Students")
                         .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Time_Table_Generator.Models.Class", null)
                         .WithMany("Students")
                         .HasForeignKey("ClassId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Time_Table_Generator.Models.User", "User")
                         .WithMany()

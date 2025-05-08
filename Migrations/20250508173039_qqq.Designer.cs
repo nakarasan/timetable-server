@@ -12,8 +12,8 @@ using Time_Table_Generator.Models;
 namespace Time_Table_Generator.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250330051347_UpdateMySQLCompatibility")]
-    partial class UpdateMySQLCompatibility
+    [Migration("20250508173039_qqq")]
+    partial class qqq
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,51 @@ namespace Time_Table_Generator.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("ClassSubject", b =>
+                {
+                    b.Property<int>("ClassesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubjectsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ClassesId", "SubjectsId");
+
+                    b.HasIndex("SubjectsId");
+
+                    b.ToTable("ClassSubject");
+                });
+
+            modelBuilder.Entity("ClassTeacher", b =>
+                {
+                    b.Property<int>("ClassesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeachersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ClassesId", "TeachersId");
+
+                    b.HasIndex("TeachersId");
+
+                    b.ToTable("ClassTeacher");
+                });
+
+            modelBuilder.Entity("SubjectTeacher", b =>
+                {
+                    b.Property<int>("SubjectsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeachersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SubjectsId", "TeachersId");
+
+                    b.HasIndex("TeachersId");
+
+                    b.ToTable("SubjectTeacher");
+                });
 
             modelBuilder.Entity("Time_Table_Generator.Models.Availability", b =>
                 {
@@ -242,15 +287,16 @@ namespace Time_Table_Generator.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BatchId")
+                    b.Property<int?>("BatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClassId")
                         .HasColumnType("int");
 
                     b.Property<string>("RegistrationNumber")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("RollNumber")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("UserId")
@@ -259,6 +305,8 @@ namespace Time_Table_Generator.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BatchId");
+
+                    b.HasIndex("ClassId");
 
                     b.HasIndex("UserId");
 
@@ -433,9 +481,6 @@ namespace Time_Table_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -451,6 +496,51 @@ namespace Time_Table_Generator.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ClassSubject", b =>
+                {
+                    b.HasOne("Time_Table_Generator.Models.Class", null)
+                        .WithMany()
+                        .HasForeignKey("ClassesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Time_Table_Generator.Models.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ClassTeacher", b =>
+                {
+                    b.HasOne("Time_Table_Generator.Models.Class", null)
+                        .WithMany()
+                        .HasForeignKey("ClassesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Time_Table_Generator.Models.Teacher", null)
+                        .WithMany()
+                        .HasForeignKey("TeachersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SubjectTeacher", b =>
+                {
+                    b.HasOne("Time_Table_Generator.Models.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Time_Table_Generator.Models.Teacher", null)
+                        .WithMany()
+                        .HasForeignKey("TeachersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Time_Table_Generator.Models.Batch", b =>
@@ -521,10 +611,14 @@ namespace Time_Table_Generator.Migrations
             modelBuilder.Entity("Time_Table_Generator.Models.Student", b =>
                 {
                     b.HasOne("Time_Table_Generator.Models.Batch", "Batch")
-                        .WithMany()
+                        .WithMany("Students")
                         .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Time_Table_Generator.Models.Class", null)
+                        .WithMany("Students")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Time_Table_Generator.Models.User", "User")
                         .WithMany()
@@ -621,9 +715,16 @@ namespace Time_Table_Generator.Migrations
                     b.Navigation("Teacher");
                 });
 
+            modelBuilder.Entity("Time_Table_Generator.Models.Batch", b =>
+                {
+                    b.Navigation("Students");
+                });
+
             modelBuilder.Entity("Time_Table_Generator.Models.Class", b =>
                 {
                     b.Navigation("Batches");
+
+                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }

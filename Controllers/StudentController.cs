@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Time_Table_Generator.Models;
 using Time_Table_Generator.Models.Request;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Time_Table_Generator.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class StudentController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,9 +20,29 @@ namespace Time_Table_Generator.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var students = _context.Students.ToList();
+            var students = _context.Students
+                .Include(s => s.User)
+                .Include(s => s.Batch)
+                .Select(s => new
+                {
+                    UserId = s.UserId,
+                    firstName = s.User!.FirstName,
+                    lastName = s.User.LastName,
+                    displayname = s.User.Displayname,
+                    phone = s.User.Phone,
+                    address = s.User.Address,
+                    email = s.User.Email,
+                    password = s.User.Password,
+                    userType = s.User.UserType,
+                    rollNumber = s.RollNumber,
+                    registrationNumber = s.RegistrationNumber,
+                    batchName = s.Batch != null ? s.Batch.Name : null
+                })
+                .ToList();
+
             return Ok(new ResponseResult<object>(students));
         }
+
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)

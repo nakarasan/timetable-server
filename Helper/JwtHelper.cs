@@ -17,7 +17,6 @@ namespace Time_Table_Generator.Helpers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Displayname),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var token = new JwtSecurityToken(
