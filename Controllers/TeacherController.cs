@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Time_Table_Generator.Models;
 using Time_Table_Generator.Models.Request;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Time_Table_Generator.Controllers
 {
@@ -19,7 +20,24 @@ namespace Time_Table_Generator.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var teachers = _context.Teachers.ToList();
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new
+                {
+                    UserId = t.UserId,
+                    TeacherId = t.Id,
+                    firstName = t.User!.FirstName,
+                    lastName = t.User.LastName,
+                    displayname = t.User.Displayname,
+                    phone = t.User.Phone,
+                    address = t.User.Address,
+                    email = t.User.Email,
+                    password = t.User.Password,
+                    userType = t.User.UserType,
+                    // Add more teacher-specific fields if needed
+                })
+                .ToList();
+
             return Ok(new ResponseResult<object>(teachers));
         }
 
@@ -63,17 +81,27 @@ namespace Time_Table_Generator.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{userId}")]
+        public IActionResult DeleteTeacherByUserId(int userId)
         {
-            var teacher = _context.Teachers.Find(id);
-            if (teacher == null) 
+            // Find the teacher by UserId
+            var teacher = _context.Teachers.FirstOrDefault(t => t.UserId == userId);
+            if (teacher == null)
                 return NotFound(new ResponseResult<object>(new[] { "Teacher not found." }));
-            
+
+            // Find the user
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return NotFound(new ResponseResult<object>(new[] { "User not found." }));
+
+            // Remove the teacher and user
             _context.Teachers.Remove(teacher);
+            _context.Users.Remove(user);
             _context.SaveChanges();
-            return NoContent();
+
+            return Ok(new ResponseResult<object>("Teacher and User deleted successfully."));
         }
+
 
         /*[HttpGet("classes-and-subjects/{id?}")]
         public IActionResult GetClassesAndSubjects(int? id)

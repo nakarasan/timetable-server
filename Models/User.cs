@@ -33,7 +33,7 @@ namespace Time_Table_Generator.Models
     public enum UserRole { Admin, User, Guest }
 
     // Enum for User Types
-    public enum UserType { Student, Teacher, Staff }
+    public enum UserType { Student, Teacher, Admin }
 
     // Enum for User Status
     public enum UserStatus { Active, Inactive, Suspended, Deleted }

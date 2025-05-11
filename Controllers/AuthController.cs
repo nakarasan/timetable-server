@@ -40,7 +40,7 @@ namespace Time_Table_Generator.Controllers
                 Address = request.Address,
                 Email = request.Email,
                 Password = Helpers.PasswordHelper.HashPassword(request.Password),
-                UserType = request.UserType ?? UserType.Student,
+                UserType = request.UserType ?? UserType.Admin,
                 Status = UserStatus.Active,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -118,5 +118,47 @@ namespace Time_Table_Generator.Controllers
 
             return Ok(new ResponseResult<object>(loginResult));
         }
+
+        [HttpGet("Admins")]
+        public IActionResult GetAllAdmins()
+        {
+            var admins = _context.Users
+                .Where(u => u.UserType == UserType.Admin)
+                .Select(u => new
+                {
+                    userId = u.Id,
+                    firstName = u.FirstName,
+                    lastName = u.LastName,
+                    displayname = u.Displayname,
+                    phone = u.Phone,
+                    address = u.Address,
+                    email = u.Email,
+                    password = u.Password,
+                    userType = u.UserType,
+                    status = u.Status,
+                    createdAt = u.CreatedAt,
+                    updatedAt = u.UpdatedAt
+                })
+                .ToList();
+
+            return Ok(new ResponseResult<object>(admins));
+        }
+
+        [HttpDelete("Admin/{userId}")]
+        public IActionResult DeleteAdmin(int userId)
+        {
+            // Find the user
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId && u.UserType == UserType.Admin);
+            if (user == null)
+                return NotFound(new ResponseResult<object>(new[] { "Admin user not found." }));
+
+            // Delete the user
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return Ok(new ResponseResult<object>("Admin user deleted successfully."));
+        }
+
+
     }
 }

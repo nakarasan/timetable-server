@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Time_Table_Generator.Models;
 using Time_Table_Generator.Models.Request;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Time_Table_Generator.Controllers
 {
@@ -19,9 +20,25 @@ namespace Time_Table_Generator.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var teacherSubjects = _context.TeacherSubjects.ToList();
+            var teacherSubjects = _context.TeacherSubjects
+                .Include(ts => ts.Teacher)
+                    .ThenInclude(t => t!.User)
+                .Include(ts => ts.Subject)
+                .Include(ts => ts.Class)
+                .Select(ts => new
+                {
+                    Id = ts.Id,
+                    TeacherName = ts.Teacher != null && ts.Teacher.User != null
+                        ? $"{ts.Teacher.User.FirstName} {ts.Teacher.User.LastName}"
+                        : "N/A",
+                    SubjectName = ts.Subject != null ? ts.Subject.Name : "N/A",
+                    ClassName = ts.Class != null ? ts.Class.Name : "N/A"
+                })
+                .ToList();
+
             return Ok(new ResponseResult<object>(teacherSubjects));
         }
+
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)

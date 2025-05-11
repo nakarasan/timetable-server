@@ -103,28 +103,73 @@ namespace Time_Table_Generator.Controllers
             return Ok(new ResponseResult<object>(classEntity));
         }
 
-        [HttpPost("{classId}/AddSubjects")]
-        public IActionResult AddSubjectsToClass(int classId, [FromBody] List<int> subjectIds)
+        [HttpPost("AddSubjectsToClass")]
+        public IActionResult AddSubjectsToClass([FromBody] CreateSubjectClassRequest req)
         {
-            var classEntity = _context.Classes.Include(c => c.Subjects).FirstOrDefault(c => c.Id == classId);
-            if (classEntity == null)
-                return NotFound(new ResponseResult<object>(new[] { "Class not found." }));
-
-            var subjects = _context.Subjects.Where(s => subjectIds.Contains(s.Id)).ToList();
-            if (!subjects.Any())
-                return BadRequest(new ResponseResult<object>(new[] { "No valid subjects found." }));
-
-            foreach (var subject in subjects)
+            try
             {
+                var classEntity = _context.Classes
+                    .Include(c => c.Subjects)
+                    .FirstOrDefault(c => c.Id == req.ClassId);
+
+                if (classEntity == null)
+                    return NotFound(new ResponseResult<object>(new[] { "Class not found." }));
+
+                var subject = _context.Subjects.FirstOrDefault(s => s.Id == req.SubjectId);
+                if (subject == null)
+                    return BadRequest(new ResponseResult<object>(new[] { "Subject not found." }));
+
                 if (!classEntity.Subjects.Contains(subject))
                 {
                     classEntity.Subjects.Add(subject);
+                    _context.SaveChanges();
                 }
-            }
 
-            _context.SaveChanges();
-            return Ok(new ResponseResult<object>(classEntity));
+                return Ok(new ResponseResult<object>(new { req.ClassId, req.SubjectId }));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseResult<object>(new[] { "Invalid payload.", ex.Message }));
+            }
         }
+
+        [HttpGet("ClassSubjects")]
+        public IActionResult GetClassSubjects()
+        {
+            var classSubjects = _context.Classes
+                .Include(c => c.Subjects)
+                .SelectMany(c => c.Subjects.Select(s => new
+                {
+                    Id = s.Id, // subjectId
+                    ClassId = c.Id,
+                    ClassName = c.Name,
+                    SubjectName = s.Name
+                }))
+                .ToList();
+
+            return Ok(new ResponseResult<object>(classSubjects));
+        }
+
+        [HttpDelete("ClassSubjects")]
+        public IActionResult DeleteClassSubject([FromQuery] int classId, [FromQuery] int subjectId)
+        {
+            var classEntity = _context.Classes
+                .Include(c => c.Subjects)
+                .FirstOrDefault(c => c.Id == classId);
+
+            if (classEntity == null)
+                return NotFound(new ResponseResult<object>(new[] { "Class not found." }));
+
+            var subject = classEntity.Subjects.FirstOrDefault(s => s.Id == subjectId);
+            if (subject == null)
+                return NotFound(new ResponseResult<object>(new[] { "Subject not assigned to this class." }));
+
+            classEntity.Subjects.Remove(subject);
+            _context.SaveChanges();
+
+            return Ok(new ResponseResult<object>(new { classId, subjectId, message = "Subject removed from class." }));
+        }
+
 
         [HttpGet("{classId}/Details")]
         public IActionResult GetClassDetails(int classId)

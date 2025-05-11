@@ -86,17 +86,25 @@ namespace Time_Table_Generator.Controllers
             return Ok(new ResponseResult<object>(student));
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{userId}")]
+        public IActionResult DeleteByUserId(int userId)
         {
-            var student = _context.Students.Find(id);
+            // Find the student by UserId
+            var student = _context.Students.FirstOrDefault(s => s.UserId == userId);
             if (student == null)
                 return NotFound(new ResponseResult<object>(new[] { "Student not found." }));
 
+            // Find the user
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return NotFound(new ResponseResult<object>(new[] { "User not found." }));
+
+            // Remove the student and user
             _context.Students.Remove(student);
+            _context.Users.Remove(user);
             _context.SaveChanges();
 
-            return Ok(new ResponseResult<object>("Student deleted successfully."));
+            return Ok(new ResponseResult<object>("Student and User deleted successfully."));
         }
     }
 }
