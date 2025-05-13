@@ -24,7 +24,7 @@ namespace Time_Table_Generator.Controllers
 
         // Register method
         [HttpPost("register")]
-        public ActionResult<User> Register([FromBody] RegisterRequest request)
+        public ActionResult Register([FromBody] RegisterRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Displayname) || string.IsNullOrWhiteSpace(request.Password))
             {
@@ -46,11 +46,9 @@ namespace Time_Table_Generator.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            // Save user to database
             _context.Users.Add(newUser);
             _context.SaveChanges();
 
-            // Create teacher or student record based on user role
             if (newUser.UserType == UserType.Teacher)
             {
                 var teacher = new Teacher
@@ -65,21 +63,24 @@ namespace Time_Table_Generator.Controllers
                 var student = new Student
                 {
                     UserId = newUser.Id,
-                    // Set default values for required fields
                     RollNumber = request.RollNumber ?? string.Empty,
                     RegistrationNumber = request.RegistrationNumber ?? string.Empty,
-                    // BatchId will need to be provided or set to a default value if required
-                    BatchId = request.BatchId ?? null // Assuming 0 is an acceptable default
+                    BatchId = request.BatchId
                 };
-
                 _context.Students.Add(student);
                 _context.SaveChanges();
             }
 
-            // Respond with the newly created user
-            var response = new ResponseResult<object>(newUser);
+            // Respond with the newly created user and their ID
+            var response = new ResponseResult<object>(new
+            {
+                User = newUser,
+                UserId = newUser.Id
+            });
+
             return Ok(response);
         }
+
 
         // Login method
         [HttpPost("login")]
@@ -111,9 +112,10 @@ namespace Time_Table_Generator.Controllers
             var loginResult = new
             {
                 Token = token,
+                Id = user.Id,
                 Displayname = user.Displayname,
                 Email = user.Email,
-                UserType = user.UserType.ToString()
+                UserType = user.UserType
             };
 
             return Ok(new ResponseResult<object>(loginResult));
@@ -143,6 +145,68 @@ namespace Time_Table_Generator.Controllers
 
             return Ok(new ResponseResult<object>(admins));
         }
+
+        [HttpGet("user/{id}")]
+        public IActionResult GetUserById(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                return NotFound(new ResponseResult<object>(new[] { "User not found." }));
+            }
+
+            // Base user info
+            var userInfo = new
+            {
+                userId = user.Id,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                displayname = user.Displayname,
+                phone = user.Phone,
+                address = user.Address,
+                email = user.Email,
+                userType = user.UserType,
+                status = user.Status,
+                createdAt = user.CreatedAt,
+                updatedAt = user.UpdatedAt
+            };
+
+            object extendedInfo = user.UserType switch
+            {
+                UserType.Student => _context.Students
+                        .Where(s => s.UserId == id)
+                        .Select(s => new
+                        {
+                            batchId = s.BatchId, // keep this as is
+                            rollNumber = s.RollNumber,
+                            registrationNumber = s.RegistrationNumber,
+                            batchInfo = new // renamed from BatchId and BatchName
+                            {
+                                id = s.Batch.Id,
+                                name = s.Batch.Name
+                            }
+                        })
+                        .FirstOrDefault(),
+
+                UserType.Teacher => _context.Teachers
+                    .Where(t => t.UserId == id)
+                    .Select(t => new
+                    {
+                        teacherId = t.Id,
+                    })
+                    .FirstOrDefault(),
+
+                _ => null
+            };
+
+            return Ok(new ResponseResult<object>(new
+            {
+                user = userInfo,
+                details = extendedInfo
+            }));
+        }
+
 
         [HttpDelete("Admin/{userId}")]
         public IActionResult DeleteAdmin(int userId)

@@ -23,5 +23,7 @@ namespace Time_Table_Generator.Models
         public required DateTime StartTime { get; set; }
         public required DateTime EndTime { get; set; }
         public required DateTime Date { get; set; }
+
+        public string? Day { get; set; }
     }
 }

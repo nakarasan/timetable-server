@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Time_Table_Generator.Models;
 
@@ -11,9 +12,11 @@ using Time_Table_Generator.Models;
 namespace Time_Table_Generator.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250512163852_message-table-added")]
+    partial class messagetableadded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -284,8 +287,8 @@ namespace Time_Table_Generator.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BatchId")
-                        .HasColumnType("int");
+                    b.Property<bool?>("BatchId")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -293,8 +296,8 @@ namespace Time_Table_Generator.Migrations
                     b.Property<bool?>("IsRead")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("SenderId")
-                        .HasColumnType("int");
+                    b.Property<bool?>("SenderId")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Text")
                         .HasColumnType("longtext");

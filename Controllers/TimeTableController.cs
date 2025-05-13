@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Time_Table_Generator.Models;
 using OfficeOpenXml;
@@ -126,7 +126,8 @@ namespace Time_Table_Generator.Controllers
                                 SubjectId = subject.Id,
                                 StartTime = DateTime.Today.Add(startTimeSlot),
                                 EndTime = DateTime.Today.Add(endTimeSlot),
-                                Date = DateTime.Today
+                                Date = DateTime.Today,
+                                Day = day
                             });
                         }
 
@@ -134,6 +135,9 @@ namespace Time_Table_Generator.Controllers
                     }
                 }
             }
+
+            _context.TimeTables.RemoveRange(_context.TimeTables);
+            _context.SaveChanges();
 
             // Save timetable to database
             _context.TimeTables.AddRange(timeTableEntities);
@@ -211,7 +215,8 @@ namespace Time_Table_Generator.Controllers
                       SubjectName = t.Subject != null ? t.Subject.Name : "N/A", // Replace ?. with conditional expression
                       StartTime = t.StartTime.ToString("hh:mm tt"),
                       EndTime = t.EndTime.ToString("hh:mm tt"),
-                      Date = t.Date.ToString("yyyy-MM-dd")
+                      Date = t.Date.ToString("yyyy-MM-dd"),
+                      Day = t.Day
                   })
                 .ToList();
 
@@ -230,21 +235,23 @@ namespace Time_Table_Generator.Controllers
                 return ExportTimeTables(query, $"Batch_{batchId}_TimeTables.xlsx");
 
             var timetable = query
-                .Include(t => t.Class)
-                .Include(t => t.Teacher)
-                .ThenInclude(t => t.User)
-                .Include(t => t.Subject)
-                  .Select(t => new
-                  {
-                      ClassName = t.Class != null ? t.Class.Name : "N/A", // Replace ?. with conditional expression
-                      BatchName = t.Batch != null ? t.Batch.Name : "N/A", // Replace ?. with conditional expression
-                      TeacherName = t.Teacher != null && t.Teacher.User != null ? t.Teacher.User.Displayname : "N/A", // Replace ?. with conditional expression
-                      SubjectName = t.Subject != null ? t.Subject.Name : "N/A", // Replace ?. with conditional expression
-                      StartTime = t.StartTime.ToString("hh:mm tt"),
-                      EndTime = t.EndTime.ToString("hh:mm tt"),
-                      Date = t.Date.ToString("yyyy-MM-dd")
-                  })
-                .ToList();
+                        .Include(t => t.Class)
+                        .Include(t => t.Teacher)
+                        .ThenInclude(t => t.User)
+                        .Include(t => t.Subject)
+                        .Select(t => new
+                        {
+                            ClassName = t.Class != null ? t.Class.Name : "N/A",
+                            BatchName = t.Batch != null ? t.Batch.Name : "N/A",
+                            TeacherName = t.Teacher != null && t.Teacher.User != null ? t.Teacher.User.Displayname : "N/A",
+                            SubjectName = t.Subject != null ? t.Subject.Name : "N/A",
+                            StartTime = t.StartTime.ToString("hh:mm tt"),
+                            EndTime = t.EndTime.ToString("hh:mm tt"),
+                            Date = t.Date.ToString("yyyy-MM-dd"),
+                            Day = t.Day
+                        })
+                        .ToList();
+
 
             if (!timetable.Any())
                 return NotFound("Batch not found or no timetable available.");
